@@ -1,0 +1,25 @@
+{
+  "name": "balehalla",
+  "version": "1.0.0",
+  "description": "Discord bot for the Balehalla Breadwinners town",
+  "license": "ISC",
+  "author": "Narolithz",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "deploy-commands": "node dist/deploy-commands.js"
+  },
+  "dependencies": {
+    "cron": "^4.3.5",
+    "discord.js": "^14.25.1",
+    "jimp": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
