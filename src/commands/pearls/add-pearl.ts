@@ -5,6 +5,7 @@ import { Pearl } from '../../models/Pearl';
 import { PearlColor } from "../../models/PearlColor";
 import { PearlSector } from "../../models/PearlSector";
 import { addNumberPrefix } from '../../utils/numberFormatter';
+import { minCoord, maxCoord } from '../../config.json';
 
 const pearlsFile = path.join(process.cwd(), 'pearls.json');
 
@@ -18,16 +19,16 @@ module.exports = {
                 .setName('x')
                 .setDescription('The X coordinate of the pearl')
                 .setRequired(true)
-                .setMinValue(-160)
-                .setMaxValue(160),
+                .setMinValue(minCoord)
+                .setMaxValue(maxCoord),
 		)
 		.addIntegerOption((option) =>
 			option
 				.setName('y')
 				.setDescription('The Y coordinate of the pearl')
 				.setRequired(true)
-				.setMinValue(-160)
-				.setMaxValue(160),
+				.setMinValue(minCoord)
+				.setMaxValue(maxCoord),
 		)
 		.addStringOption((option) =>
 			option

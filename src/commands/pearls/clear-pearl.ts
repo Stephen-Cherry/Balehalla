@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { Pearl } from '../../models/Pearl';
 import { addNumberPrefix } from '../../utils/numberFormatter';
+import { minCoord, maxCoord } from '../../config.json';
 
 const pearlsFile = path.join(process.cwd(), 'pearls.json');
 
@@ -12,15 +13,20 @@ module.exports = {
         .setName('clear-pearl')
         .setDescription('Adds a pearl to the list.')
         .addIntegerOption((option) =>
-            option.setName('x').setDescription('The X coordinate of the pearl').setRequired(true),
+            option
+                .setName('x')
+                .setDescription('The X coordinate of the pearl')
+                .setRequired(true)
+                .setMinValue(minCoord)
+                .setMaxValue(maxCoord),
         )
         .addIntegerOption((option) =>
             option
                 .setName('y')
                 .setDescription('The Y coordinate of the pearl')
                 .setRequired(true)
-                .setMinValue(-155)
-                .setMaxValue(155),
+                .setMinValue(minCoord)
+                .setMaxValue(maxCoord),
         ),
     async execute(interaction: ChatInputCommandInteraction): Promise<void> {
         const x = interaction.options.getInteger('x');
