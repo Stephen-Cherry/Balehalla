@@ -13,7 +13,8 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] }) as CustomClie
 client.commands = new Collection();
 
 client.once(Events.ClientReady, (readyClient) => {
-	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+	const timeStamp = new Date().toISOString();
+	console.log(`[${timeStamp}] Ready! Logged in as ${readyClient.user.tag}`);
 });
 
 const foldersPath = path.join(__dirname, 'commands');
@@ -67,7 +68,8 @@ const _ = new CronJob(
 			return;
 		}
 		fs.writeFileSync(pearlsFile, JSON.stringify([], null, 2));
-		console.log('Daily pearl clearance executed.');
+		const timeStamp = new Date().toISOString();
+		console.log(`[${timeStamp}] Daily pearl reset executed.`);
 	},
 	null, // onComplete
 	true, // start now
