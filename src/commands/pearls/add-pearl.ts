@@ -74,8 +74,8 @@ module.exports = {
         }
 
         const sector = x >= 0 
-            ? (y >= 0 ? PearlSector.NorthEast : PearlSector.SouthEast) 
-            : (y >= 0 ? PearlSector.NorthWest : PearlSector.SouthWest);
+            ? (y >= 0 ? PearlSector.BottomRight : PearlSector.TopRight) 
+            : (y >= 0 ? PearlSector.BottomLeft : PearlSector.TopLeft);
 
 		pearls.push({ x: x, y: y, color: color, sector: sector });
 		fs.writeFileSync(pearlsFile, JSON.stringify(pearls, null, 2));

@@ -1,8 +1,8 @@
 enum PearlSector {
-	NorthWest = "-/+",
-	NorthEast = "+/+",
-	SouthWest = "-/-",
-	SouthEast = "+/-"
+	TopLeft = "-/-",
+	TopRight = "+/-",
+	BottomLeft = "-/+",
+	BottomRight = "+/+"
 }
 
 export { PearlSector };

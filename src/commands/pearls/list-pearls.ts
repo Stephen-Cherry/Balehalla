@@ -58,13 +58,13 @@ module.exports = {
                 pearls = pearls.filter(pearl => {
                     switch (filterSector) {
                         case '(-,+)':
-                            return pearl.sector === PearlSector.NorthWest;
+                            return pearl.sector === PearlSector.BottomLeft;
                         case '(+,+)':
-                            return pearl.sector === PearlSector.NorthEast;
+                            return pearl.sector === PearlSector.BottomRight;
                         case '(-,-)':
-                            return pearl.sector === PearlSector.SouthWest;
+                            return pearl.sector === PearlSector.TopLeft;
                         case '(+,-)':
-                            return pearl.sector === PearlSector.SouthEast;
+                            return pearl.sector === PearlSector.TopRight;
                         default:
                             return true;
                     };
