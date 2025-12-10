@@ -2,7 +2,7 @@ import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, Message
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('help')
+		.setName('pearl-help')
 		.setDescription('Displays help information for pearl commands.'),
 
 	async execute(interaction: ChatInputCommandInteraction): Promise<void> {
