@@ -67,6 +67,8 @@ const _ = new CronJob(
 		if (!fs.existsSync(pearlsFile)) {
 			return;
 		}
+		const prevDaysData = fs.readFileSync(pearlsFile, 'utf-8');
+		fs.writeFileSync(`${pearlsFile}_yesterday`, prevDaysData);
 		fs.writeFileSync(pearlsFile, JSON.stringify([], null, 2));
 		const timeStamp = new Date().toISOString();
 		console.log(`[${timeStamp}] Daily pearl reset executed.`);
