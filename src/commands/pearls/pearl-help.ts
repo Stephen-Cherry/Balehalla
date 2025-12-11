@@ -31,7 +31,7 @@ module.exports = {
 				},
 				{
 					name: '/show-map',
-					value: '**Usage:** `/show-map`\nDisplays a visual map with pearls marked.',
+					value: '**Usage:** `/show-map [filter-color:<Color>]`\nDisplays a visual map with pearls marked; optional filter:\n• `filter-color`: color name',
 					inline: false,
 				},
 			)
