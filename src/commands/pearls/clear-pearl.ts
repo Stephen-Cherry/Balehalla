@@ -29,11 +29,12 @@ module.exports = {
                 .setMaxValue(maxCoord),
         ),
     async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+        await interaction.deferReply();
         const x = interaction.options.getInteger('x');
         const y = interaction.options.getInteger('y');
 
         if (x === null || y === null) {
-            await interaction.reply('Both X and Y coordinates are required.');
+            await interaction.editReply('Both X and Y coordinates are required.');
             return;
         }
 
@@ -47,7 +48,7 @@ module.exports = {
             }
 
             if (pearls.length === 0) {
-                await interaction.reply('No pearls found.');
+                await interaction.editReply('No pearls found.');
                 return;
             }
 
@@ -55,15 +56,15 @@ module.exports = {
             pearls = pearls.filter(pearl => !(pearl.x === x && pearl.y === y));
 
             if (pearls.length === initialLength) {
-                await interaction.reply(`No pearl found at (X: ${addNumberPrefix(x)}, Y: ${addNumberPrefix(y)}).`);
+                await interaction.editReply(`No pearl found at (X: ${addNumberPrefix(x)}, Y: ${addNumberPrefix(y)}).`);
                 return;
             }
 
             await fs.writeFile(pearlsFile, JSON.stringify(pearls, null, 2));
-            await interaction.reply(`Cleared pearl at (X: ${addNumberPrefix(x)}, Y: ${addNumberPrefix(y)}).`);
+            await interaction.editReply(`Cleared pearl at (X: ${addNumberPrefix(x)}, Y: ${addNumberPrefix(y)}).`);
         } catch (error) {
             console.error('Error clearing pearl:', error);
-            await interaction.reply('An error occurred while clearing the pearl.');
+            await interaction.editReply('An error occurred while clearing the pearl.');
         }
     },
 };

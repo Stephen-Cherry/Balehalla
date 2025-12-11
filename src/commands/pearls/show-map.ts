@@ -26,6 +26,7 @@ module.exports = {
                 ),
         ),
     async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+        await interaction.deferReply();
         try {
             let pearls: Pearl[] = [];
             try {
@@ -41,7 +42,7 @@ module.exports = {
             }
 
             if (pearls.length === 0) {
-                await interaction.reply('No pearls found.');
+                await interaction.editReply('No pearls found.');
                 return;
             }
 
@@ -146,11 +147,11 @@ module.exports = {
             const buffer = await image.getBuffer(JimpMime.png)
             const attachment = new AttachmentBuilder(buffer, { name: 'pearls-map.png' });
 
-            await interaction.reply({ files: [attachment] });
+            await interaction.editReply({ files: [attachment] });
         }
         catch (error) {
             console.error('Error executing show-map command:', error);
-            await interaction.reply('An error occurred while processing your request.');
+            await interaction.editReply('An error occurred while processing your request.');
         }
     }
 };

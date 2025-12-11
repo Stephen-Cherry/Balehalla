@@ -6,6 +6,7 @@ module.exports = {
 		.setDescription('Displays help information for pearl commands.'),
 
 	async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 		const embed = new EmbedBuilder()
 			.setTitle('Pearl Commands')
 			.setColor(0x00aaff)
@@ -36,6 +37,6 @@ module.exports = {
 			)
 			.setTimestamp();
 
-		await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral});
+		await interaction.editReply({ embeds: [embed] });
 	},
 };

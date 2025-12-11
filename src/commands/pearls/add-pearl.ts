@@ -16,11 +16,11 @@ module.exports = {
 		.setDescription('Adds a pearl to the list.')
 		.addIntegerOption((option) =>
 			option
-                .setName('x')
-                .setDescription('The X coordinate of the pearl')
-                .setRequired(true)
-                .setMinValue(minCoord)
-                .setMaxValue(maxCoord),
+				.setName('x')
+				.setDescription('The X coordinate of the pearl')
+				.setRequired(true)
+				.setMinValue(minCoord)
+				.setMaxValue(maxCoord),
 		)
 		.addIntegerOption((option) =>
 			option
@@ -43,24 +43,25 @@ module.exports = {
 				),
 		),
 	async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+		await interaction.deferReply();
 		const x = interaction.options.getInteger('x');
 		const y = interaction.options.getInteger('y');
 		const color = interaction.options.getString('color') as PearlColor;
 
-        if (x === null) {
-            await interaction.reply('X coordinate is required.');
-            return;
-        }
+		if (x === null) {
+			await interaction.editReply('X coordinate is required.');
+			return;
+		}
 
-        if (y === null) {
-            await interaction.reply('Y coordinate is required.');
-            return;
-        }
-        
-        if (color === null) {
-            await interaction.reply('Color is required.');
-            return;
-        }
+		if (y === null) {
+			await interaction.editReply('Y coordinate is required.');
+			return;
+		}
+
+		if (color === null) {
+			await interaction.editReply('Color is required.');
+			return;
+		}
 
 		let pearls: Pearl[] = [];
 		if (fs.existsSync(pearlsFile)) {
@@ -68,17 +69,17 @@ module.exports = {
 			pearls = JSON.parse(data);
 		}
 
-        if (pearls.some(pearl => pearl.x === x && pearl.y === y)) {
-            await interaction.reply(`A pearl already exists at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`);
-            return;
-        }
+		if (pearls.some(pearl => pearl.x === x && pearl.y === y)) {
+			await interaction.editReply(`A pearl already exists at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`);
+			return;
+		}
 
-        const sector = x >= 0 
-            ? (y >= 0 ? PearlSector.BottomRight : PearlSector.TopRight) 
-            : (y >= 0 ? PearlSector.BottomLeft : PearlSector.TopLeft);
+		const sector = x >= 0
+			? (y >= 0 ? PearlSector.BottomRight : PearlSector.TopRight)
+			: (y >= 0 ? PearlSector.BottomLeft : PearlSector.TopLeft);
 
 		pearls.push({ x: x, y: y, color: color, sector: sector });
 		fs.writeFileSync(pearlsFile, JSON.stringify(pearls, null, 2));
-		await interaction.reply(`Added a ${color} pearl at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`);
+		await interaction.editReply(`Added a ${color} pearl at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`);
 	},
 };

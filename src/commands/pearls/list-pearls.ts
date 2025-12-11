@@ -37,6 +37,7 @@ module.exports = {
                 ),
         ),
     async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+        await interaction.deferReply();
         try {
             let pearls: Pearl[] = [];
             const filterColor = interaction.options.getString('filter-color');
@@ -50,7 +51,7 @@ module.exports = {
             }
 
             if (pearls.length === 0) {
-                await interaction.reply('No pearls found.');
+                await interaction.editReply('No pearls found.');
                 return;
             }
 
@@ -70,7 +71,7 @@ module.exports = {
                     };
                 });
                 if (pearls.length === 0) {
-                    await interaction.reply(`No pearls found in sector ${filterSector}.`);
+                    await interaction.editReply(`No pearls found in sector ${filterSector}.`);
                     return;
                 }
             }
@@ -78,7 +79,7 @@ module.exports = {
             if (filterColor) {
                 pearls = pearls.filter(pearl => pearl.color === filterColor);
                 if (pearls.length === 0) {
-                    await interaction.reply(`No pearls found with color ${filterColor}.`);
+                    await interaction.editReply(`No pearls found with color ${filterColor}.`);
                     return;
                 }
             }
@@ -113,10 +114,10 @@ module.exports = {
                 });
             }
 
-            await interaction.reply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error('Error listing pearls:', error);
-            await interaction.reply('An error occurred while listing pearls.');
+            await interaction.editReply('An error occurred while listing pearls.');
         }
     },
 };
