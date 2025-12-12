@@ -7,6 +7,7 @@ import { CustomClient } from './models/CustomClient';
 import { CronJob } from 'cron';
 
 const pearlsFile = path.join(process.cwd(), 'pearls.json');
+const prevDaysFile = path.join(process.cwd(), 'pearls_yesterday.json');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] }) as CustomClient;
 
@@ -68,7 +69,7 @@ const _ = new CronJob(
 			return;
 		}
 		const prevDaysData = fs.readFileSync(pearlsFile, 'utf-8');
-		fs.writeFileSync(`${pearlsFile}_yesterday`, prevDaysData);
+		fs.writeFileSync(`${prevDaysFile}`, prevDaysData);
 		fs.writeFileSync(pearlsFile, JSON.stringify([], null, 2));
 		const timeStamp = new Date().toISOString();
 		console.log(`[${timeStamp}] Daily pearl reset executed.`);
