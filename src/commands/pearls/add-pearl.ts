@@ -5,9 +5,6 @@ import {
 	ButtonBuilder,
 	ButtonStyle,
 	ComponentType,
-	ModalBuilder,
-	TextInputBuilder,
-	TextInputStyle,
 	MessageFlags,
 } from 'discord.js';
 import fs from 'fs';
@@ -76,33 +73,36 @@ module.exports = {
 		}
 
 		let pearls: Pearl[] = [];
-		if (fs.existsSync(pearlsFile)) {
-			const data = fs.readFileSync(pearlsFile, 'utf8');
-			pearls = JSON.parse(data);
-		}
-
-		if (pearls.some(pearl => pearl.x === x && pearl.y === y)) {
-			await interaction.editReply(`A pearl already exists at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`);
+		try {
+			if (fs.existsSync(pearlsFile)) {
+				const data = fs.readFileSync(pearlsFile, 'utf8');
+				pearls = JSON.parse(data);
+			}
+		} catch {
+			await interaction.editReply('Error reading pearls data.');
 			return;
 		}
 
-		if (fs.existsSync(prevDayPearlsFile)) {
-			const prevData = fs.readFileSync(prevDayPearlsFile, 'utf8');
-			const prevPearls: Pearl[] = JSON.parse(prevData);
-			if (prevPearls.some(pearl => pearl.x === x && pearl.y === y && pearl.color === color)) {
-				const yesId = `prev_yes_${interaction.id}`;
-				const noId = `prev_no_${interaction.id}`;
+		try {
+			if (pearls.some(pearl => pearl.x === x && pearl.y === y)) {
+				await interaction.editReply(`A pearl already exists at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`);
+				return;
+			}
+			if (fs.existsSync(prevDayPearlsFile)) {
+				const prevData = fs.readFileSync(prevDayPearlsFile, 'utf8');
+				const prevPearls: Pearl[] = JSON.parse(prevData);
+				if (prevPearls.some(pearl => pearl.x === x && pearl.y === y && pearl.color === color)) {
+					const yesId = `prev_yes_${interaction.id}`;
+					const noId = `prev_no_${interaction.id}`;
 
-				const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-					new ButtonBuilder().setCustomId(yesId).setLabel('Yes').setStyle(ButtonStyle.Success),
-					new ButtonBuilder().setCustomId(noId).setLabel('No').setStyle(ButtonStyle.Danger),
-				);
+					const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+						new ButtonBuilder().setCustomId(yesId).setLabel('Yes').setStyle(ButtonStyle.Success),
+						new ButtonBuilder().setCustomId(noId).setLabel('No').setStyle(ButtonStyle.Danger),
+					);
 
-				await interaction.editReply({ content: `There is a ${color} pearl recorded at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}) in yesterday's data. Are you sure you wish to add to today?`, components: [row] });
+					await interaction.editReply({ content: `There is a ${color} pearl recorded at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}) in yesterday's data. Are you sure you wish to add to today?`, components: [row] });
 
-				const replyMsg = (await interaction.fetchReply());
-
-				try {
+					const replyMsg = (await interaction.fetchReply());
 					const buttonInteraction = await replyMsg.awaitMessageComponent({
 						filter: (i: any) => i.user.id === interaction.user.id && (i.customId === yesId || i.customId === noId),
 						componentType: ComponentType.Button,
@@ -121,18 +121,21 @@ module.exports = {
 						await interaction.editReply({ content: `Added a ${color} pearl at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`, components: [] });
 						return;
 					}
-				} catch (err) {
-					// timed out or other
-					await interaction.editReply({ content: `No response — add cancelled for (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`, components: [] });
-					return;
 				}
 			}
-		} else {
-			addPearl(pearls, x, y, color);
-			await interaction.editReply(`Added a ${color} pearl at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`);
+			else {
+				addPearl(pearls, x, y, color);
+				await interaction.editReply(`Added a ${color} pearl at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`);
+			}
+		}
+		catch (err) {
+			// timed out or other
+			console.error('Error during add-pearl confirmation:', err);
+			await interaction.editReply('An error occurred or no response received. Pearl not added.');
+			return;
 		}
 	},
-};
+}
 
 function addPearl(pearls: Pearl[], x: number, y: number, color: PearlColor): void {
 	const sector = x >= 0
