@@ -133,6 +133,7 @@ module.exports = {
 			}
 			addPearl(pearls, x, y, color);
 			await interaction.editReply(`Added a ${color} pearl at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`);
+			return;
 		}
 		addPearl(pearls, x, y, color);
 		await interaction.editReply(`Added a ${color} pearl at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`);
