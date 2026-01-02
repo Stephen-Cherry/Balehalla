@@ -7,25 +7,12 @@ import {
 	ComponentType,
 	MessageFlags,
 } from 'discord.js';
-import fs from 'fs';
-import path from 'path';
 import { Pearl } from '../../models/Pearl';
 import { PearlColor } from "../../models/PearlColor";
 import { PearlSector } from "../../models/PearlSector";
 import { addNumberPrefix } from '../../utils/numberFormatter';
 import { minCoord, maxCoord } from '../../config.json';
-
-const pearlsFile = path.join(process.cwd(), 'pearls.json');
-const prevDayPearlsFile = path.join(process.cwd(), 'pearls_yesterday.json');
-
-const addPearl = (pearls: Pearl[], x: number, y: number, color: PearlColor): void => {
-	const sector = x >= 0
-		? (y >= 0 ? PearlSector.BottomRight : PearlSector.TopRight)
-		: (y >= 0 ? PearlSector.BottomLeft : PearlSector.TopLeft);
-
-	pearls.push({ x: x, y: y, color: color, sector: sector });
-	fs.writeFileSync(pearlsFile, JSON.stringify(pearls, null, 2));
-}
+import { addPearl as dbAddPearl, getTodaysPearls, getYesterdaysPearls } from '../../utils/mysqlService';
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -80,63 +67,61 @@ module.exports = {
 			return;
 		}
 
-		let pearls: Pearl[] = [];
-		if (fs.existsSync(pearlsFile)) {
-			const data = fs.readFileSync(pearlsFile, 'utf8');
-			pearls = JSON.parse(data);
-		}
+		const pearls = await getTodaysPearls();
 
 		if (pearls.some(pearl => pearl.x === x && pearl.y === y)) {
 			await interaction.editReply(`A pearl already exists at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`);
 			return;
 		}
-		if (fs.existsSync(prevDayPearlsFile)) {
-			const prevData = fs.readFileSync(prevDayPearlsFile, 'utf8');
-			const prevPearls: Pearl[] = JSON.parse(prevData);
-			if (prevPearls.some(pearl => pearl.x === x && pearl.y === y && pearl.color === color)) {
-				const yesId = `prev_yes_${interaction.id}`;
-				const noId = `prev_no_${interaction.id}`;
 
-				const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-					new ButtonBuilder().setCustomId(yesId).setLabel('Yes').setStyle(ButtonStyle.Success),
-					new ButtonBuilder().setCustomId(noId).setLabel('No').setStyle(ButtonStyle.Danger),
-				);
+		const prevPearls = await getYesterdaysPearls();
 
-				await interaction.editReply({ content: `There is a ${color} pearl recorded at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}) in yesterday's data. Are you sure you wish to add to today?`, components: [row] });
+		const sector = x >= 0
+			? (y >= 0 ? PearlSector.BottomRight : PearlSector.TopRight)
+			: (y >= 0 ? PearlSector.BottomLeft : PearlSector.TopLeft);
+		
+		const newPearl: Pearl = { x, y, color, sector };
 
-				try {
-					const replyMsg = (await interaction.fetchReply());
-					const buttonInteraction = await replyMsg.awaitMessageComponent({
-						filter: (i: any) => i.user.id === interaction.user.id && (i.customId === yesId || i.customId === noId),
-						componentType: ComponentType.Button,
-						time: 60_000,
-					});
+		if (prevPearls.some(pearl => pearl.x === x && pearl.y === y && pearl.color === color)) {
+			const yesId = `prev_yes_${interaction.id}`;
+			const noId = `prev_no_${interaction.id}`;
 
-					if (buttonInteraction.customId === noId) {
-						await buttonInteraction.reply({ content: 'OK — not adding the pearl.', flags: MessageFlags.Ephemeral });
-						await interaction.editReply({ content: `Add cancelled for (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`, components: [] });
-						return;
-					}
+			const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+				new ButtonBuilder().setCustomId(yesId).setLabel('Yes').setStyle(ButtonStyle.Success),
+				new ButtonBuilder().setCustomId(noId).setLabel('No').setStyle(ButtonStyle.Danger),
+			);
 
-					if (buttonInteraction.customId === yesId) {
-						await buttonInteraction.reply({ content: 'OK - Adding the pearl.', flags: MessageFlags.Ephemeral });
-						addPearl(pearls, x, y, color);
-						await interaction.editReply({ content: `Added a ${color} pearl at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`, components: [] });
-						return;
-					}
+			await interaction.editReply({ content: `There is a ${color} pearl recorded at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}) in yesterday's data. Are you sure you wish to add to today?`, components: [row] });
+
+			try {
+				const replyMsg = (await interaction.fetchReply());
+				const buttonInteraction = await replyMsg.awaitMessageComponent({
+					filter: (i: any) => i.user.id === interaction.user.id && (i.customId === yesId || i.customId === noId),
+					componentType: ComponentType.Button,
+					time: 60_000,
+				});
+
+				if (buttonInteraction.customId === noId) {
+					await buttonInteraction.reply({ content: 'OK — not adding the pearl.', flags: MessageFlags.Ephemeral });
+					await interaction.editReply({ content: `Add cancelled for (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`, components: [] });
+					return;
 				}
-				catch (err) {
-					// timed out or other
-					await interaction.editReply('no response received. Pearl not added.');
+
+				if (buttonInteraction.customId === yesId) {
+					await buttonInteraction.reply({ content: 'OK - Adding the pearl.', flags: MessageFlags.Ephemeral });
+					await dbAddPearl(newPearl);
+					await interaction.editReply({ content: `Added a ${color} pearl at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`, components: [] });
 					return;
 				}
 			}
-			addPearl(pearls, x, y, color);
-			await interaction.editReply(`Added a ${color} pearl at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`);
-			return;
+			catch (err) {
+				// timed out or other
+				await interaction.editReply('no response received. Pearl not added.');
+				return;
+			}
 		}
-		addPearl(pearls, x, y, color);
+		
+		await dbAddPearl(newPearl);
 		await interaction.editReply(`Added a ${color} pearl at (${addNumberPrefix(x)}, ${addNumberPrefix(y)}).`);
 	}
 }
-

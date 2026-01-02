@@ -1,17 +1,13 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
-import { promises as fs } from 'fs';
-import path from 'path';
-import { Pearl } from '../../models/Pearl';
 import { addNumberPrefix } from '../../utils/numberFormatter';
 import { minCoord, maxCoord } from '../../config.json';
-
-const pearlsFile = path.join(process.cwd(), 'pearls.json');
-
+import { deletePearl } from '../../utils/mysqlService';
+import { PearlSector } from '../../models/PearlSector';
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('clear-pearl')
-        .setDescription('Adds a pearl to the list.')
+        .setDescription('Removes a pearl from the list.')
         .addIntegerOption((option) =>
             option
                 .setName('x')
@@ -39,28 +35,17 @@ module.exports = {
         }
 
         try {
-            let pearls: Pearl[] = [];
-            try {
-                const data = await fs.readFile(pearlsFile, 'utf8');
-                pearls = JSON.parse(data);
-            } catch {
-                pearls = [];
-            }
+            const sector = x >= 0
+                ? (y >= 0 ? PearlSector.BottomRight : PearlSector.TopRight)
+                : (y >= 0 ? PearlSector.BottomLeft : PearlSector.TopLeft);
 
-            if (pearls.length === 0) {
-                await interaction.editReply('No pearls found.');
-                return;
-            }
+            const affectedRows = await deletePearl(x, y, sector);
 
-            const initialLength = pearls.length;
-            pearls = pearls.filter(pearl => !(pearl.x === x && pearl.y === y));
-
-            if (pearls.length === initialLength) {
+            if (affectedRows === 0) {
                 await interaction.editReply(`No pearl found at (X: ${addNumberPrefix(x)}, Y: ${addNumberPrefix(y)}).`);
                 return;
             }
 
-            await fs.writeFile(pearlsFile, JSON.stringify(pearls, null, 2));
             await interaction.editReply(`Cleared pearl at (X: ${addNumberPrefix(x)}, Y: ${addNumberPrefix(y)}).`);
         } catch (error) {
             console.error('Error clearing pearl:', error);

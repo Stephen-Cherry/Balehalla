@@ -1,12 +1,9 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { promises as fs } from 'fs';
-import path from 'path';
 import { Pearl } from '../../models/Pearl';
 import { PearlColor } from "../../models/PearlColor";
 import { PearlSector } from "../../models/PearlSector";
 import { addNumberPrefix } from '../../utils/numberFormatter';
-
-const pearlsFile = path.join(process.cwd(), 'pearls.json');
+import { getTodaysPearls } from '../../utils/mysqlService';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -39,16 +36,10 @@ module.exports = {
     async execute(interaction: ChatInputCommandInteraction): Promise<void> {
         await interaction.deferReply();
         try {
-            let pearls: Pearl[] = [];
             const filterColor = interaction.options.getString('filter-color');
             const filterSector = interaction.options.getString('filter-sector');
 
-            try {
-                const data = await fs.readFile(pearlsFile, 'utf8');
-                pearls = JSON.parse(data);
-            } catch {
-                pearls = [];
-            }
+            let pearls = await getTodaysPearls();
 
             if (pearls.length === 0) {
                 await interaction.editReply('No pearls found.');

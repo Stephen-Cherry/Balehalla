@@ -1,12 +1,9 @@
 
 import { SlashCommandBuilder, ChatInputCommandInteraction} from 'discord.js';
-import { promises as fs } from 'fs';
-import path from 'path';
 import { Pearl } from '../../models/Pearl';
 import { PearlColor } from "../../models/PearlColor";
 import { generatePearlMap } from '../../utils/imageGenerator';
-
-const pearlsFile = path.join(process.cwd(), 'pearls.json');
+import { getTodaysPearls } from '../../utils/mysqlService';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -27,13 +24,7 @@ module.exports = {
     async execute(interaction: ChatInputCommandInteraction): Promise<void> {
         await interaction.deferReply();
         try {
-            let pearls: Pearl[] = [];
-            try {
-                const data = await fs.readFile(pearlsFile, 'utf8');
-                pearls = JSON.parse(data);
-            } catch {
-                pearls = [];
-            }
+            let pearls = await getTodaysPearls();
 
             const filterColor = interaction.options.getString('filter-color');
             if (filterColor) {

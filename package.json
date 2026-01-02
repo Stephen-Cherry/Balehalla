@@ -6,7 +6,7 @@
   "author": "Narolithz",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
@@ -15,10 +15,14 @@
   "dependencies": {
     "cron": "^4.3.5",
     "discord.js": "^14.25.1",
-    "jimp": "^1.6.0"
+    "jimp": "^1.6.0",
+    "mysql2": "^3.16.0"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.10.6",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   }

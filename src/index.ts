@@ -5,9 +5,9 @@ import { token } from './config.json';
 import { Command } from './models/Command';
 import { CustomClient } from './models/CustomClient';
 import { CronJob } from 'cron';
+import { deleteOldPearls } from './utils/mysqlService';
 
-const pearlsFile = path.join(process.cwd(), 'pearls.json');
-const prevDaysFile = path.join(process.cwd(), 'pearls_yesterday.json');
+const logFile = path.join(process.cwd(), 'bot.log');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] }) as CustomClient;
 
@@ -45,8 +45,17 @@ client.on(Events.InteractionCreate, async (interaction) => {
 	}
 
 	try {
+		if (!fs.existsSync(logFile)) {
+			fs.writeFileSync(logFile, '');
+		}
+		const timeStamp = new Date().toISOString();
+		const logEntry = `[${timeStamp}] ${interaction.user.tag} executed command: /${interaction.commandName}\n`;
+		fs.appendFileSync(logFile, logEntry);
 		await command.execute(interaction);
+		
 	} catch (error) {
+		const timeStamp = new Date().toISOString();
+		fs.appendFileSync(logFile, `[${timeStamp}] Error executing command /${interaction.commandName}: ${error}\n`);
 		console.error(error);
 		try {
 			if (interaction.replied || interaction.deferred) {
@@ -69,14 +78,13 @@ client.on(Events.InteractionCreate, async (interaction) => {
 const _ = new CronJob(
 	'0 0 0 * * *', // seconds minutes hours dayOfMonth month dayOfWeek
 	async () => {
-		if (!fs.existsSync(pearlsFile)) {
-			return;
-		}
-		const prevDaysData = fs.readFileSync(pearlsFile, 'utf-8');
-		fs.writeFileSync(`${prevDaysFile}`, prevDaysData);
-		fs.writeFileSync(pearlsFile, JSON.stringify([], null, 2));
 		const timeStamp = new Date().toISOString();
-		console.log(`[${timeStamp}] Daily pearl reset executed.`);
+		try {
+			const affectedRows = await deleteOldPearls(30);
+			console.log(`[${timeStamp}] Daily old pearl cleanup executed. Removed ${affectedRows} pearls.`);
+		} catch (error) {
+			console.error(`[${timeStamp}] Error during daily old pearl cleanup:`, error);
+		}
 	},
 	null, // onComplete
 	true, // start now
