@@ -17,7 +17,7 @@ export const executeQuery = async <T>(sql: string, params: any[] = []): Promise<
 };
 
 export const addPearl = async (pearl: Pearl): Promise<number> => {
-    const sql = 'INSERT INTO pearls (x, y, color, sector) VALUES (?, ?, ?, ?)';
+    const sql = 'INSERT INTO pearls (x, y, color, sector, created_at) VALUES (?, ?, ?, ?, UTC_TIMESTAMP())';
     const [result] = await pool.execute(sql, [pearl.x, pearl.y, pearl.color, pearl.sector]);
     return (result as mysql.ResultSetHeader).insertId;
 }
