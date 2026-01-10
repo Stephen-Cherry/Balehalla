@@ -17,8 +17,8 @@ export const executeQuery = async <T>(sql: string, params: any[] = []): Promise<
 };
 
 export const addPearl = async (pearl: Pearl): Promise<number> => {
-    const sql = 'INSERT INTO pearls (x, y, color, sector, created_at) VALUES (?, ?, ?, ?, UTC_TIMESTAMP())';
-    const [result] = await pool.execute(sql, [pearl.x, pearl.y, pearl.color, pearl.sector]);
+    const sql = 'INSERT INTO pearls (x, y, color, sector, user, created_at) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())';
+    const [result] = await pool.execute(sql, [pearl.x, pearl.y, pearl.color, pearl.sector, pearl.user]);
     return (result as mysql.ResultSetHeader).insertId;
 }
 
@@ -44,6 +44,20 @@ export const getAllPearls = async (): Promise<Pearl[]> => {
     const sql = 'SELECT * FROM pearls';
     const [rows] = await pool.execute(sql);
     return rows as Pearl[];
+}
+
+export const getAllPearlsUsersCount = async (sundayTimestamp: Date): Promise<[{ user:string, user_count: number }]> => {
+    // Get count of pearls collected by each user this week (assuming week starts on Sunday)
+    const sql = `SELECT user, 
+    COUNT(*) AS user_count 
+    FROM pearls 
+    WHERE created_at >= ? 
+    AND user IS NOT NULL AND user != \'\' 
+    GROUP BY user 
+    ORDER BY user_count DESC`;
+
+    const [rows] = await pool.execute(sql, [sundayTimestamp]);
+    return rows as [{ user:string, user_count: number }];
 }
 
 export const deleteOldPearls = async (days: number): Promise<number> => {

@@ -7,6 +7,7 @@ interface Pearl {
 	y: number;
 	color: PearlColor;
 	sector: PearlSector;
+	user?: string;
 	created_at?: Date;
 }
 

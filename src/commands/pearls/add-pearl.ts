@@ -51,6 +51,7 @@ module.exports = {
 		const x = interaction.options.getInteger('x');
 		const y = interaction.options.getInteger('y');
 		const color = interaction.options.getString('color') as PearlColor;
+		const user = interaction.user.displayName;
 
 		if (x === null) {
 			await interaction.editReply('X coordinate is required.');
@@ -80,7 +81,7 @@ module.exports = {
 			? (y >= 0 ? PearlSector.BottomRight : PearlSector.TopRight)
 			: (y >= 0 ? PearlSector.BottomLeft : PearlSector.TopLeft);
 		
-		const newPearl: Pearl = { x, y, color, sector };
+		const newPearl: Pearl = { x, y, color, sector, user};
 
 		if (prevPearls.some(pearl => pearl.x === x && pearl.y === y && pearl.color === color)) {
 			const yesId = `prev_yes_${interaction.id}`;

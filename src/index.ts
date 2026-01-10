@@ -1,11 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { Client, Collection, Events, GatewayIntentBits, MessageFlags } from 'discord.js';
-import { token } from './config.json';
+import { Client, Collection, EmbedBuilder, Events, GatewayIntentBits, MessageFlags, TextChannel } from 'discord.js';
+import { token, pearlChannelId } from './config.json';
 import { Command } from './models/Command';
 import { CustomClient } from './models/CustomClient';
 import { CronJob } from 'cron';
-import { deleteOldPearls } from './utils/mysqlService';
+import { deleteOldPearls, getAllPearlsUsersCount } from './utils/mysqlService';
+import { getSundayTimestamp } from './utils/dateUtils';
 
 const logFile = path.join(process.cwd(), 'bot.log');
 
@@ -75,7 +76,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 	}
 });
 
-const _ = new CronJob(
+const dailyCleanupJob = new CronJob(
 	'0 0 0 * * *', // seconds minutes hours dayOfMonth month dayOfWeek
 	async () => {
 		const timeStamp = new Date().toISOString();
@@ -88,6 +89,34 @@ const _ = new CronJob(
 	},
 	null, // onComplete
 	true, // start now
+	'UTC'
+);
+
+
+const weeklyLeaderboardJob = new CronJob(
+	'0 0 0 * * 0', // seconds minutes hours dayOfMonth month dayOfWeek (every Sunday at midnight UTC)
+	async () => {
+		const lastSunday = getSundayTimestamp(1);
+		const leaderboard = await getAllPearlsUsersCount(lastSunday);
+		const timeStamp = new Date().toISOString();
+		console.log(`[${timeStamp}] Weekly leaderboard generated for week starting ${lastSunday.toISOString()}:`);
+		client.channels.fetch(pearlChannelId).then(channel => {
+			if (channel && channel.isTextBased()) {
+				const textChannel = channel as TextChannel;
+				const leaderboardString = leaderboard.map((user, index) => `${index + 1}. ${user.user} - ${user.user_count}`).join('\n') || 'No pearls collected last week.';
+				const embed = new EmbedBuilder()
+					.setColor(0x00aaff)
+					.setTimestamp()
+					.setTitle('Weekly Pearl Collection Leaderboard')
+					.setDescription(leaderboardString);
+				textChannel.send({ embeds: [embed] });
+			} else {
+				console.error(`[${timeStamp}] Channel not found or is not text-based.`);
+			}
+		});
+	},
+	null,
+	true,
 	'UTC'
 );
 
