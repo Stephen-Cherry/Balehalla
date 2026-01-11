@@ -6,6 +6,7 @@ import {
 	ButtonStyle,
 	ComponentType,
 	MessageFlags,
+	GuildMember,
 } from 'discord.js';
 import { Pearl } from '../../models/Pearl';
 import { PearlColor } from "../../models/PearlColor";
@@ -51,7 +52,8 @@ module.exports = {
 		const x = interaction.options.getInteger('x');
 		const y = interaction.options.getInteger('y');
 		const color = interaction.options.getString('color') as PearlColor;
-		const user = interaction.user.displayName;
+		const guildMember = interaction.member as GuildMember;
+		const user = guildMember.nickname ?? guildMember.user.username;
 
 		if (x === null) {
 			await interaction.editReply('X coordinate is required.');
@@ -65,6 +67,11 @@ module.exports = {
 
 		if (color === null) {
 			await interaction.editReply('Color is required.');
+			return;
+		}
+
+		if (user === null) {
+			await interaction.editReply('User is required.');
 			return;
 		}
 
