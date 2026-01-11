@@ -11,4 +11,10 @@ const getSundayTimestamp = (weeksBack: number = 0): Date => {
     return sunday;
 };
 
-export { getDaysSinceSunday, getSundayTimestamp };
+const addDays = (date: Date, days: number): Date => {
+    const newDate = new Date(date);
+    newDate.setUTCDate(newDate.getUTCDate() + days);
+    return newDate;
+}
+
+export { getDaysSinceSunday, getSundayTimestamp, addDays };

@@ -1,6 +1,7 @@
 import mysql from 'mysql2/promise';
 import { dbInfo } from '../config.json';
 import { Pearl } from '../models/Pearl';
+import { addDays } from './dateUtils';
 import { PearlSector } from '../models/PearlSector';
 
 const pool = mysql.createPool({
@@ -52,11 +53,13 @@ export const getAllPearlsUsersCount = async (sundayTimestamp: Date): Promise<[{ 
     COUNT(*) AS user_count 
     FROM pearls 
     WHERE created_at >= ? 
-    AND user IS NOT NULL AND user != \'\' 
+    AND created_at < ?
+    AND user IS NOT NULL AND user != ''
     GROUP BY user 
     ORDER BY user_count DESC`;
 
-    const [rows] = await pool.execute(sql, [sundayTimestamp]);
+    const sundayAfterTimestamp = addDays(sundayTimestamp, 7);
+    const [rows] = await pool.execute(sql, [sundayTimestamp, sundayAfterTimestamp]);
     return rows as [{ user:string, user_count: number }];
 }
 
